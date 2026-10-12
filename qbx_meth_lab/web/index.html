@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Meth Lab Management</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div id="app" class="hidden">
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1>🧪 Meth Lab</h1>
+                <div class="subtitle">Management Terminal</div>
+            </div>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="dashboard"><span class="tab-icon">📊</span> Dashboard</button>
+                <button class="tab-btn" data-tab="workers"><span class="tab-icon">👷</span> Workers</button>
+                <button class="tab-btn" data-tab="dealers"><span class="tab-icon">🧑‍💼</span> Dealers</button>
+                <button class="tab-btn" data-tab="supplies"><span class="tab-icon">📦</span> Supplies</button>
+                <button class="tab-btn" data-tab="machines"><span class="tab-icon">⚗️</span> Machines</button>
+                <button class="tab-btn" data-tab="storage"><span class="tab-icon">🏷️</span> Storage</button>
+                <button class="tab-btn" data-tab="bank"><span class="tab-icon">💰</span> Bank</button>
+                <button class="tab-btn" data-tab="settings"><span class="tab-icon">⚙️</span> Settings</button>
+            </div>
+            <div class="sidebar-footer">
+                <button class="btn btn-danger" onclick="closeUI()">✕ Close</button>
+            </div>
+        </div>
+
+        <div class="content">
+
+            <!-- DASHBOARD -->
+            <div class="tab-content active" id="tab-dashboard">
+                <h2>Dashboard</h2>
+                <div id="buy-lab-card" class="card" style="display:none;">
+                    <h3>🔒 Lab Locked</h3>
+                    <p class="card-desc">Purchase the meth lab to begin operations.</p>
+                    <button class="btn btn-primary" onclick="buyLab()">Buy Lab</button>
+                </div>
+                <div class="card" id="upgrade-card" style="display:none;">
+                    <h3>⬆️ Upgrade Lab</h3>
+                    <p class="card-desc">Unlock all 4 machines (Meth, Cocaine, Oxy, Pills).</p>
+                    <button class="btn btn-success" onclick="upgradeLab()">Upgrade</button>
+                </div>
+                <div class="card">
+                    <h3>📈 Overview</h3>
+                    <div class="list">
+                        <div class="list-item"><span class="item-name">Workers</span><span class="item-amount" id="dash-workers">0</span></div>
+                        <div class="list-item"><span class="item-name">Dealers</span><span class="item-amount" id="dash-dealers">0</span></div>
+                        <div class="list-item"><span class="item-name">Lab Cash</span><span class="item-amount" id="dash-cash">$0</span></div>
+                    </div>
+                </div>
+                <canvas id="dealer-chart"></canvas>
+            </div>
+
+            <!-- WORKERS -->
+            <div class="tab-content" id="tab-workers">
+                <h2>Workers</h2>
+                <div class="card">
+                    <h3>Hire Worker</h3>
+                    <p class="card-desc">Workers auto-manufacture drugs from available ingredients.</p>
+                    <button class="btn btn-primary" onclick="hireWorker()">Hire</button>
+                </div>
+                <div class="card">
+                    <h3>Current Workers</h3>
+                    <div class="list" id="workers-list"></div>
+                </div>
+                <canvas id="worker-chart"></canvas>
+            </div>
+
+            <!-- DEALERS -->
+            <div class="tab-content" id="tab-dealers">
+                <h2>Dealers</h2>
+                <div class="card">
+                    <h3>Hire Dealer</h3>
+                    <p class="card-desc">Dealers grab products from storage and sell them across the map.</p>
+                    <button class="btn btn-primary" onclick="hireDealer()">Hire</button>
+                </div>
+                <div class="card">
+                    <h3>Current Dealers</h3>
+                    <div class="list" id="dealers-list"></div>
+                </div>
+            </div>
+
+            <!-- SUPPLIES -->
+            <div class="tab-content" id="tab-supplies">
+                <h2>Supplies</h2>
+                <div class="card">
+                    <h3>Buy Supplies</h3>
+                    <div class="grid" id="supplies-grid"></div>
+                </div>
+            </div>
+
+            <!-- MACHINES -->
+            <div class="tab-content" id="tab-machines">
+                <h2>Machines</h2>
+
+                <!-- METH -->
+                <div class="machine-card">
+                    <div class="machine-header">
+                        <img class="machine-img" src="images/meth_machine.PNG" alt="Meth">
+                        <div>
+                            <h3>Methamphetamine</h3>
+                            <span class="status-badge" id="meth-status">Idle</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar" id="meth-progress-wrap" style="display:none;">
+                        <div class="progress-fill" id="meth-progress"></div>
+                        <span class="progress-text" id="meth-progress-text">0%</span>
+                    </div>
+                    <div class="config-form">
+                        <div class="form-group">
+                            <label>Config Name (Strain)</label>
+                            <input type="text" id="meth-config-name" placeholder="e.g. Blue Strain">
+                        </div>
+                        <div class="form-group">
+                            <label>Strain Description</label>
+                            <input type="text" id="meth-strain" placeholder="optional notes">
+                        </div>
+                        <div class="form-group">
+                            <label>Freezer Temp (<span id="meth-freezer-val">-10°C</span>)</label>
+                            <input type="range" id="meth-freezer" min="-20" max="0" value="-10">
+                        </div>
+                        <div class="form-group">
+                            <label>Heater Temp (<span id="meth-heater-val">80°C</span>)</label>
+                            <input type="range" id="meth-heater" min="40" max="120" value="80">
+                        </div>
+                        <div class="form-group">
+                            <label>Quantity (<span id="meth-qty-val">5</span>)</label>
+                            <input type="range" id="meth-qty" min="1" max="10" value="5">
+                        </div>
+                        <div class="form-group">
+                            <label>Additives</label>
+                            <div class="additives-checks" id="meth-additives"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Load Saved Config</label>
+                            <select id="meth-saved-list" onchange="if(this.value) selectConfig('meth', this.value)">
+                                <option value="">-- Select a saved config --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="btn-row" style="margin-top:16px;">
+                        <button class="btn btn-primary" onclick="saveConfig('meth')">💾 Save Config</button>
+                        <button class="btn btn-danger btn-sm" id="meth-del-config" onclick="deleteConfig('meth')" style="display:none;">🗑 Delete</button>
+                        <button class="btn btn-success" id="meth-start-btn" onclick="startManufacturing('meth')">▶ Start</button>
+                        <button class="btn btn-danger" id="meth-stop-btn" onclick="stopManufacturing('meth')" style="display:none;">⏹ Stop</button>
+                    </div>
+                </div>
+
+                <!-- COCAINE -->
+                <div class="machine-card">
+                    <div class="machine-header">
+                        <img class="machine-img" src="images/coke_machine.png" alt="Cocaine">
+                        <div>
+                            <h3>Cocaine</h3>
+                            <span class="status-badge" id="coke-status">Idle</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar" id="coke-progress-wrap" style="display:none;">
+                        <div class="progress-fill" id="coke-progress"></div>
+                        <span class="progress-text" id="coke-progress-text">0%</span>
+                    </div>
+                    <div class="config-form">
+                        <div class="form-group">
+                            <label>Config Name (Strain)</label>
+                            <input type="text" id="coke-config-name" placeholder="e.g. Colombian">
+                        </div>
+                        <div class="form-group">
+                            <label>Strain Description</label>
+                            <input type="text" id="coke-strain" placeholder="optional notes">
+                        </div>
+                        <div class="form-group">
+                            <label>Freezer Temp (<span id="coke-freezer-val">0°C</span>)</label>
+                            <input type="range" id="coke-freezer" min="-10" max="10" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Heater Temp (<span id="coke-heater-val">60°C</span>)</label>
+                            <input type="range" id="coke-heater" min="30" max="90" value="60">
+                        </div>
+                        <div class="form-group">
+                            <label>Quantity (<span id="coke-qty-val">4</span>)</label>
+                            <input type="range" id="coke-qty" min="1" max="8" value="4">
+                        </div>
+                        <div class="form-group">
+                            <label>Additives</label>
+                            <div class="additives-checks" id="coke-additives"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Load Saved Config</label>
+                            <select id="coke-saved-list" onchange="if(this.value) selectConfig('cocaine', this.value)">
+                                <option value="">-- Select a saved config --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="btn-row" style="margin-top:16px;">
+                        <button class="btn btn-primary" onclick="saveConfig('cocaine')">💾 Save Config</button>
+                        <button class="btn btn-danger btn-sm" id="coke-del-config" onclick="deleteConfig('cocaine')" style="display:none;">🗑 Delete</button>
+                        <button class="btn btn-success" id="coke-start-btn" onclick="startManufacturing('cocaine')">▶ Start</button>
+                        <button class="btn btn-danger" id="coke-stop-btn" onclick="stopManufacturing('cocaine')" style="display:none;">⏹ Stop</button>
+                    </div>
+                </div>
+
+                <!-- OXY -->
+                <div class="machine-card">
+                    <div class="machine-header">
+                        <img class="machine-img" src="images/oxy_machine.png" alt="Oxy">
+                        <div>
+                            <h3>Oxycodone</h3>
+                            <span class="status-badge" id="oxy-status">Idle</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar" id="oxy-progress-wrap" style="display:none;">
+                        <div class="progress-fill" id="oxy-progress"></div>
+                        <span class="progress-text" id="oxy-progress-text">0%</span>
+                    </div>
+                    <div class="config-form">
+                        <div class="form-group">
+                            <label>Config Name (Strain)</label>
+                            <input type="text" id="oxy-config-name" placeholder="e.g. Percocet">
+                        </div>
+                        <div class="form-group">
+                            <label>Strain Description</label>
+                            <input type="text" id="oxy-strain" placeholder="optional notes">
+                        </div>
+                        <div class="form-group">
+                            <label>Freezer Temp (<span id="oxy-freezer-val">0°C</span>)</label>
+                            <input type="range" id="oxy-freezer" min="-5" max="5" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Heater Temp (<span id="oxy-heater-val">40°C</span>)</label>
+                            <input type="range" id="oxy-heater" min="20" max="60" value="40">
+                        </div>
+                        <div class="form-group">
+                            <label>Quantity (<span id="oxy-qty-val">3</span>)</label>
+                            <input type="range" id="oxy-qty" min="1" max="6" value="3">
+                        </div>
+                        <div class="form-group">
+                            <label>Additives</label>
+                            <div class="additives-checks" id="oxy-additives"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Load Saved Config</label>
+                            <select id="oxy-saved-list" onchange="if(this.value) selectConfig('oxy', this.value)">
+                                <option value="">-- Select a saved config --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="btn-row" style="margin-top:16px;">
+                        <button class="btn btn-primary" onclick="saveConfig('oxy')">💾 Save Config</button>
+                        <button class="btn btn-danger btn-sm" id="oxy-del-config" onclick="deleteConfig('oxy')" style="display:none;">🗑 Delete</button>
+                        <button class="btn btn-success" id="oxy-start-btn" onclick="startManufacturing('oxy')">▶ Start</button>
+                        <button class="btn btn-danger" id="oxy-stop-btn" onclick="stopManufacturing('oxy')" style="display:none;">⏹ Stop</button>
+                    </div>
+                </div>
+
+                <!-- PILL -->
+                <div class="machine-card">
+                    <div class="machine-header">
+                        <img class="machine-img" src="images/pill_machine.png" alt="Pill">
+                        <div>
+                            <h3>Mixed Pill</h3>
+                            <span class="status-badge" id="pill-status">Idle</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar" id="pill-progress-wrap" style="display:none;">
+                        <div class="progress-fill" id="pill-progress"></div>
+                        <span class="progress-text" id="pill-progress-text">0%</span>
+                    </div>
+                    <div class="config-form">
+                        <div class="form-group">
+                            <label>Config Name (Strain)</label>
+                            <input type="text" id="pill-config-name" placeholder="e.g. Combo X">
+                        </div>
+                        <div class="form-group">
+                            <label>Strain Description</label>
+                            <input type="text" id="pill-strain" placeholder="optional notes">
+                        </div>
+                        <div class="form-group">
+                            <label>Freezer Temp (<span id="pill-freezer-val">-5°C</span>)</label>
+                            <input type="range" id="pill-freezer" min="-15" max="5" value="-5">
+                        </div>
+                        <div class="form-group">
+                            <label>Heater Temp (<span id="pill-heater-val">50°C</span>)</label>
+                            <input type="range" id="pill-heater" min="30" max="80" value="50">
+                        </div>
+                        <div class="form-group">
+                            <label>Quantity (<span id="pill-qty-val">3</span>)</label>
+                            <input type="range" id="pill-qty" min="1" max="5" value="3">
+                        </div>
+                        <div class="form-group">
+                            <label>Additives</label>
+                            <div class="additives-checks" id="pill-additives"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Load Saved Config</label>
+                            <select id="pill-saved-list" onchange="if(this.value) selectConfig('pill', this.value)">
+                                <option value="">-- Select a saved config --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="btn-row" style="margin-top:16px;">
+                        <button class="btn btn-primary" onclick="saveConfig('pill')">💾 Save Config</button>
+                        <button class="btn btn-danger btn-sm" id="pill-del-config" onclick="deleteConfig('pill')" style="display:none;">🗑 Delete</button>
+                        <button class="btn btn-success" id="pill-start-btn" onclick="startManufacturing('pill')">▶ Start</button>
+                        <button class="btn btn-danger" id="pill-stop-btn" onclick="stopManufacturing('pill')" style="display:none;">⏹ Stop</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STORAGE -->
+            <div class="tab-content" id="tab-storage">
+                <h2>Storage</h2>
+                <div class="card">
+                    <h3>Lab Storage</h3>
+                    <div class="list" id="storage-list"></div>
+                </div>
+            </div>
+
+            <!-- BANK -->
+            <div class="tab-content" id="tab-bank">
+                <h2>Bank</h2>
+                <div class="card">
+                    <h3>Lab Cash</h3>
+                    <div class="bank-amount" id="bank-amount">$0</div>
+                    <div class="form-group" style="margin-top:12px;">
+                        <label>Transfer Amount</label>
+                        <input type="number" id="transfer-amount" placeholder="Enter amount" min="100">
+                    </div>
+                    <div class="btn-row" style="margin-top:12px;">
+                        <button class="btn btn-primary" onclick="transferToCash()">To Cash</button>
+                        <button class="btn btn-success" onclick="transferToBank()">To Bank</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Dealer Earnings</h3>
+                    <div class="list" id="bank-dealer-earnings"></div>
+                </div>
+            </div>
+
+            <!-- SETTINGS -->
+            <div class="tab-content" id="tab-settings">
+                <h2>Settings</h2>
+                <div class="card">
+                    <h3>Lab Settings</h3>
+                    <p class="card-desc">Changes apply immediately and persist across server restarts.</p>
+                    <div class="config-form">
+                        <div class="form-group"><label>Worker Salary ($)</label><input type="number" id="set-workerSalary" value="500"></div>
+                        <div class="form-group"><label>Dealer Salary ($)</label><input type="number" id="set-dealerSalary" value="800"></div>
+                        <div class="form-group"><label>Max Workers</label><input type="number" id="set-maxWorkers" value="4" min="1" max="10"></div>
+                        <div class="form-group"><label>Max Dealers</label><input type="number" id="set-maxDealers" value="3" min="1" max="10"></div>
+                        <div class="form-group"><label>Cook Interval (seconds)</label><input type="number" id="set-manufactureTime" value="30" min="5"></div>
+                        <div class="form-group"><label>Sell Interval (seconds)</label><input type="number" id="set-dealerSellTime" value="120" min="10"></div>
+                        <div class="form-group"><label>Min Transfer ($)</label><input type="number" id="set-transferMin" value="100" min="0"></div>
+                    </div>
+                    <div class="btn-row" style="margin-top:16px;">
+                        <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🚪 Door Position</h3>
+                    <p class="card-desc">Change where the exterior entry/exit door is located. Applies immediately to all players.</p>
+                    <div class="config-form">
+                        <div class="form-group"><label>X</label><input type="number" id="set-doorX" step="0.01"></div>
+                        <div class="form-group"><label>Y</label><input type="number" id="set-doorY" step="0.01"></div>
+                        <div class="form-group"><label>Z</label><input type="number" id="set-doorZ" step="0.01"></div>
+                    </div>
+                    <div class="btn-row" style="margin-top:16px;">
+                        <button class="btn btn-primary" onclick="saveDoorPos()">💾 Save Door Position</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>   
